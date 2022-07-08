@@ -24,7 +24,7 @@ public class BlockManager : MonoBehaviour
             SpawnBlock();
     }
 
-    private void SpawnBlock()
+    public void SpawnBlock()
     {
         var spawnedBlock = Instantiate(blockObjects[GetRandomBlockIndex()], Vector3.up*10, Quaternion.identity);
         spawnedBlock.transform.SetParent(transform);
