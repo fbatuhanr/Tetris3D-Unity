@@ -545,7 +545,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8ffc21ddfa508f247ae1b26b92a37f36, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  blocks:
+  blockObjects:
   - {fileID: 7543393430775443651, guid: d4f9a5f6375e3f54ba0a31bfef442c7b, type: 3}
   - {fileID: 8693725000523584412, guid: 3f98943f61076af45899cf7b7014c10a, type: 3}
   - {fileID: 8271291549132821675, guid: 728ac4e566650ed4aaf9d0794e5e6363, type: 3}
@@ -553,6 +553,10 @@ MonoBehaviour:
   - {fileID: 2338457685171007973, guid: 46d4dab3179bf4042b40dc0536cc3870, type: 3}
   - {fileID: 5867211714027852744, guid: 9be0b816a3b1e14469a0ff2fe6da4ecd, type: 3}
   - {fileID: 3584432213804832280, guid: 8913e35b92e80664ebc1cb196d3fcb20, type: 3}
+  blockSpeed: 1
+  leftGameBorder: {fileID: 1079659036}
+  rightGameBorder: {fileID: 1116774024}
+  bottomGameBorder: {fileID: 1823944627}
 --- !u!4 &1141709208
 Transform:
   m_ObjectHideFlags: 0

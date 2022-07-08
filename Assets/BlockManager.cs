@@ -1,12 +1,18 @@
-using System;
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using Random = UnityEngine.Random;
 
 public class BlockManager : MonoBehaviour
 {
-    [SerializeField] private GameObject [] blocks;
+    [Header("The Game Blocks:")] 
+    [SerializeField] private GameObject [] blockObjects;
+
+    public float blockSpeed;
+
+    [Header("The Game Borders:")] 
+    public Transform leftGameBorder;
+    public Transform rightGameBorder;
+    public Transform bottomGameBorder;
+    
     private void Start()
     {
         SpawnBlock();
@@ -20,12 +26,12 @@ public class BlockManager : MonoBehaviour
 
     private void SpawnBlock()
     {
-        var spawnedBlock = Instantiate(blocks[GetRandomBlockIndex()], Vector3.zero, Quaternion.identity);
+        var spawnedBlock = Instantiate(blockObjects[GetRandomBlockIndex()], Vector3.up*10, Quaternion.identity);
         spawnedBlock.transform.SetParent(transform);
     }
 
     private int GetRandomBlockIndex()
     {
-        return Random.Range(0, blocks.Length);
+        return Random.Range(0, blockObjects.Length);
     }
 }
