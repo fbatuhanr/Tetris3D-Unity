@@ -243,6 +243,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   controllerIsActive: 0
+  rotateOffsetRequired: 1
+  originalMaterial: {fileID: 2100000, guid: 900d2df36de2cb04380dca098a93e3f2, type: 2}
+  hideRotateMaterial: {fileID: 2100000, guid: 6fddaca5f9e9205418fa814d3ef5696c, type: 2}
 --- !u!1 &5867211714243634572
 GameObject:
   m_ObjectHideFlags: 0
