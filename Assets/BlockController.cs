@@ -50,7 +50,9 @@ public class BlockController : MonoBehaviour
 
                 if (isRotatable(ghostRotateBlock.transform))
                 {
-                    transform.eulerAngles += Vector3.forward * 90;
+                        transform.eulerAngles += Vector3.forward * 90;
+                        if (rotateOffsetRequired)
+                            transform.position += transform.position.x < 0 ? Vector3.left * 0.5f : Vector3.right * 0.5f;
                 }
                 Destroy(ghostRotateBlock, 3f);
             }
@@ -96,8 +98,8 @@ public class BlockController : MonoBehaviour
                 controllerIsActive = false;
                 return false;
             }
-            
-            
+
+
             for (int j = 0; j < transform.parent.childCount-1; j++)
             {
                 for (int k = 0; k < transform.parent.GetChild(j).childCount; k++)
@@ -122,6 +124,10 @@ public class BlockController : MonoBehaviour
                     
                     if (blockDiffNotEnough && blockDifferenceY <= 1)
                     {
+                        Debug.Log("this name:" + transform.GetChild(i).name);
+                        Debug.Log("selected parent name:" + transform.parent.GetChild(j).name);
+                        Debug.Log("selected parent's child name:" + transform.parent.GetChild(j).GetChild(k).name);
+                        Debug.Log("this: "+transform.parent.GetChild(j).name + ", Block Diff X: "+blockDifferenceX + " ve activated block:" + transform.parent.GetChild(j).GetChild(k).name + ", Block Diff Y: " +blockDifferenceY);
                         //if(movDirection == (Enum)movabilityDirections.left || movDirection == (Enum)movabilityDirections.right)
                         controllerIsActive = false;
                         return false;
@@ -147,9 +153,9 @@ public class BlockController : MonoBehaviour
             var bottomGameBorderDiff =
                 Math.Abs(ghostObject.GetChild(i).position.y - _blockManager.bottomGameBorder.position.y);
             
-            if (leftGameBorderDiff <= 0 || rightGameBorderDiff <= 0 || bottomGameBorderDiff <= 0)
+            if (leftGameBorderDiff <= 1 || rightGameBorderDiff <= 1 || bottomGameBorderDiff <= 1)
             {
-                Debug.Log("false: rotate border diff <= 0");
+                //Debug.Log("false: rotate border diff <= 0");
                 return false;
             }
             
@@ -161,10 +167,10 @@ public class BlockController : MonoBehaviour
                     var blockDifferenceX = Math.Abs(ghostObject.GetChild(i).position.x - transform.parent.GetChild(j).GetChild(k).position.x);
                     var blockDifferenceY = Math.Abs(ghostObject.GetChild(i).position.y - transform.parent.GetChild(j).GetChild(k).position.y);
 
-                    Debug.Log("Block Diff X: "+blockDifferenceX + " ve Block Diff Y: " +blockDifferenceY);
+                    //Debug.Log("Block Diff X: "+blockDifferenceX + " ve Block Diff Y: " +blockDifferenceY);
                     if (blockDifferenceX < 0 || blockDifferenceY < 0)
                     {
-                        Debug.Log("false: block diff <= 0");
+                        //Debug.Log("false: block diff <= 0");
                         return false;
                     }
                 }
