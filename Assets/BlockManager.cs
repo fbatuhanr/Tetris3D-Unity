@@ -55,14 +55,7 @@ public class BlockManager : MonoBehaviour
         var blok = blocks.GroupBy(x => x.transform.position.y)        // Group by name
             .Where(g => g.Count() >= leftRightGameBorderDiff)   // Select only groups having duplicates
             .SelectMany(g => g).ToList();
-        
-        
-        for (int i = 0; i < blok.Count; i++)
-        {
-            Debug.Log("Y: " + blok[i].transform.position.y);
-            Destroy(blok[i]);
-        }
-        
+
         if (blok.Count >= leftRightGameBorderDiff)
         {
             for (int i = 0; i < blok.Count; i++)
@@ -70,6 +63,8 @@ public class BlockManager : MonoBehaviour
                 Debug.Log("Y: " + blok[i].transform.position.y);
                 Destroy(blok[i]);
             }
+
+            Debug.Log("Pos y: " + blok[0].transform.position.y);
             FallRemovedLineUpperBlocks(blok[0].transform.position.y);
         }
     }
@@ -80,8 +75,11 @@ public class BlockManager : MonoBehaviour
         {
             for (int j = 0; j < transform.GetChild(i).childCount; j++)
             {
-                if(transform.GetChild(i).GetChild(j).position.y > fallStartPosY)
-                    transform.GetChild(i).GetChild(j).position += Vector3.down;
+                if (transform.GetChild(i).GetChild(j).position.y > fallStartPosY)
+                {
+                    transform.GetChild(i).position += Vector3.down;
+                    break;
+                }
             }
         }
     }
