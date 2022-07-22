@@ -1,11 +1,14 @@
 using System;
+using System.Collections;
+using System.Reflection;
 using UnityEngine;
 
 public class BlockController : MonoBehaviour
 {
     private BlockManager _blockManager;
     
-    public bool controllerIsActive;
+    public bool userCanControl, blockCanFall;
+    [SerializeField] private bool rotatable;
     [SerializeField] private bool rotateOffsetRequired;
 
     [SerializeField] private Material originalMaterial;
@@ -15,56 +18,80 @@ public class BlockController : MonoBehaviour
     {
         left,
         right,
-        bottom,
-        rotate
+        bottom
     }
 
+    private float blockInitSpeed;
     private void Start()
     { 
         _blockManager = transform.parent.GetComponent<BlockManager>();
-        
-        controllerIsActive = true;
+        userCanControl = true;
+        blockCanFall = true;
+
+        blockInitSpeed = _blockManager.blockSpeed;
+        // StartCoroutine(BlockFall());
     }
 
     private void Update()
     {
-        if (controllerIsActive)
-        {
-            if (Input.GetKeyDown(KeyCode.A))
-            {
-                if(CheckMovability(movabilityDirections.left))
-                    transform.Translate(Vector3.left, Space.World);
-            }
-            else if (Input.GetKeyDown(KeyCode.D))
-            {
-                if(CheckMovability(movabilityDirections.right))
-                    transform.Translate(Vector3.right, Space.World);
-            }
-            else if(Input.GetKeyDown(KeyCode.Space))
-            {
-                var ghostRotateBlock = Instantiate(gameObject, transform.position, transform.rotation);
-                Destroy(ghostRotateBlock.GetComponent<BlockController>());
-                
-                foreach (Transform child in ghostRotateBlock.transform)
-                    child.GetComponent<Renderer>().material = hideRotateMaterial;
+        if (userCanControl) UserInput();
+        if (blockCanFall) BlockFall();
+    }
 
-                if (isRotatable(ghostRotateBlock.transform))
-                {
-                        transform.eulerAngles += Vector3.forward * 90;
-                        if (rotateOffsetRequired)
-                            transform.position += transform.position.x < 0 ? Vector3.left * 0.5f : Vector3.right * 0.5f;
-                }
-                Destroy(ghostRotateBlock, 3f);
+    private void UserInput()
+    {
+        if (Input.GetKeyDown(KeyCode.A) || Input.GetKeyDown(KeyCode.LeftArrow))
+        {
+            if(CheckMovability(movabilityDirections.left))
+                transform.Translate(Vector3.left, Space.World);
+        }
+        else if (Input.GetKeyDown(KeyCode.D) || Input.GetKeyDown(KeyCode.RightArrow))
+        {
+            if(CheckMovability(movabilityDirections.right))
+                transform.Translate(Vector3.right, Space.World);
+        }
+        else if(Input.GetKeyDown(KeyCode.Space) && rotatable)
+        {
+            var ghostRotateBlock = Instantiate(gameObject, transform.position, transform.rotation);
+            Destroy(ghostRotateBlock.GetComponent<BlockController>());
+                
+            foreach (Transform child in ghostRotateBlock.transform)
+                child.GetComponent<Renderer>().material = hideRotateMaterial;
+
+            if (isRotatable(ghostRotateBlock.transform))
+            {
+                transform.eulerAngles += Vector3.forward * 90;
+                if (rotateOffsetRequired)
+                    transform.position += transform.position.x < 0 ? Vector3.left * 0.5f : Vector3.right * 0.5f;
             }
+            Destroy(ghostRotateBlock, 3f);
         }
         
+        if (Input.GetKey(KeyCode.S) || Input.GetKey(KeyCode.LeftArrow))
+        {
+            _blockManager.blockSpeed = blockInitSpeed * 3f;
+        }
+        else
+        {
+            _blockManager.blockSpeed = blockInitSpeed;
+        }
+    }
+    private void BlockFall()
+    { 
         if (CheckMovability(movabilityDirections.bottom))
             transform.Translate(Vector3.down * Time.deltaTime * _blockManager.blockSpeed, Space.World);
     }
 
-    private void FixedUpdate()
-    {
-    }
+    // private IEnumerator BlockFall()
+    // {
+    //     while (controllerIsActive)
+    //     {
+    //         if (CheckMovability(movabilityDirections.bottom))
+    //             transform.Translate(Vector3.down, Space.World);
+    //         
+    //         yield return new WaitForSeconds(1/_blockManager.blockSpeed);
+    //     }
+    // }
 
     private void SetMaterial(Material mat)
     {
@@ -77,6 +104,50 @@ public class BlockController : MonoBehaviour
     {
         for (int i = 0; i < transform.childCount; i++)
         {
+            for (int j = 0; j < transform.parent.childCount-1; j++)
+            {
+                for (int k = 0; k < transform.parent.GetChild(j).childCount; k++)
+                {
+                    var blockDifferenceX = transform.GetChild(i).position.x - transform.parent.GetChild(j).GetChild(k).position.x;
+                    blockDifferenceX = Mathf.Round(blockDifferenceX * 10) / 10;
+                    
+                    var blockDifferenceY = Math.Abs(transform.GetChild(i).position.y - transform.parent.GetChild(j).GetChild(k).position.y);
+                    blockDifferenceY = Mathf.Round(blockDifferenceY * 10) / 10;
+                    
+                    var blockDiffNotEnough=false;
+                    switch (movDirection) //switch case for active block object interaction with other blocks
+                    {
+                        case movabilityDirections.left:
+                            blockDiffNotEnough = (blockDifferenceX <= 1 && blockDifferenceX > -1);
+                            break;
+                        case movabilityDirections.right:
+                            blockDiffNotEnough = (blockDifferenceX < 1 && blockDifferenceX >= -1);
+                            break;
+                        case movabilityDirections.bottom:
+                            blockDifferenceX = Mathf.Abs(blockDifferenceX);
+                            blockDiffNotEnough = blockDifferenceX <= 0;
+                            break;
+                    }
+                    
+                    if (blockDiffNotEnough && blockDifferenceY <= 1)
+                    {
+                        
+                        var currPosY = Mathf.Round(transform.position.y*2)/2;
+                        transform.position = new Vector3(transform.position.x, currPosY, transform.position.z);
+                        
+                        if (movDirection.Equals(movabilityDirections.bottom))
+                        {
+                            Debug.Log("here 1");
+                            blockCanFall = false;
+                            BlockFallCompleted();
+                        }
+                        userCanControl = false;
+                        
+                        return false;
+                    }
+                }
+            }
+            
             var difference = 0f;
             switch (movDirection) //switch case for active block object interaction with game borders
             {
@@ -95,49 +166,32 @@ public class BlockController : MonoBehaviour
             }
             if (difference <= 1)
             {
-                controllerIsActive = false;
-                return false;
-            }
-
-
-            for (int j = 0; j < transform.parent.childCount-1; j++)
-            {
-                for (int k = 0; k < transform.parent.GetChild(j).childCount; k++)
+                var currPosY = Mathf.Round(transform.position.y*2)/2;
+                transform.position = new Vector3(transform.position.x, currPosY, transform.position.z);
+                
+                
+                if (movDirection.Equals(movabilityDirections.bottom))
                 {
-                    var blockDifferenceX = transform.GetChild(i).position.x - transform.parent.GetChild(j).GetChild(k).position.x;
-                    var blockDifferenceY = Math.Abs(transform.GetChild(i).position.y - transform.parent.GetChild(j).GetChild(k).position.y);
-                    
-                    var blockDiffNotEnough=false;
-                    switch (movDirection) //switch case for active block object interaction with other blocks
-                    {
-                        case movabilityDirections.left:
-                            blockDiffNotEnough = (blockDifferenceX <= 1 && blockDifferenceX > -1);
-                            break;
-                        case movabilityDirections.right:
-                            blockDiffNotEnough = (blockDifferenceX < 1 && blockDifferenceX >= -1);
-                            break;
-                        case movabilityDirections.bottom:
-                            blockDifferenceX = Math.Abs(blockDifferenceX);
-                            blockDiffNotEnough = blockDifferenceX <= 0;
-                            break;
-                    }
-                    
-                    if (blockDiffNotEnough && blockDifferenceY <= 1)
-                    {
-                        Debug.Log("this name:" + transform.GetChild(i).name);
-                        Debug.Log("selected parent name:" + transform.parent.GetChild(j).name);
-                        Debug.Log("selected parent's child name:" + transform.parent.GetChild(j).GetChild(k).name);
-                        Debug.Log("this: "+transform.parent.GetChild(j).name + ", Block Diff X: "+blockDifferenceX + " ve activated block:" + transform.parent.GetChild(j).GetChild(k).name + ", Block Diff Y: " +blockDifferenceY);
-                        //if(movDirection == (Enum)movabilityDirections.left || movDirection == (Enum)movabilityDirections.right)
-                        controllerIsActive = false;
-                        return false;
-                    }
+                    Debug.Log("here 2");
+                    blockCanFall = false;
+                    BlockFallCompleted();
                 }
+                
+                userCanControl = false;
+                
+                return false;
             }
             
         }
-        controllerIsActive = true;
+        userCanControl = true;
         return true;
+    }
+
+    private void BlockFallCompleted()
+    {
+        _blockManager.blockSpeed = blockInitSpeed;
+        _blockManager.CheckBlockLine();
+        _blockManager.SpawnBlock();   
     }
 
 
