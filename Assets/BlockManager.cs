@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using DG.Tweening;
 using UnityEngine;
 using Random = UnityEngine.Random;
 
@@ -12,6 +13,7 @@ public class BlockManager : MonoBehaviour
 
     [Header("The Game Borders:")] 
     public Transform leftGameBorder;
+    public Transform topGameBorder;
     public Transform rightGameBorder;
     public Transform bottomGameBorder;
 
@@ -33,7 +35,6 @@ public class BlockManager : MonoBehaviour
         var spawnedBlock = Instantiate(blockObjects[GetRandomBlockIndex()], Vector3.up*10, Quaternion.identity);
         spawnedBlock.transform.SetParent(transform);
     }
-
     private int GetRandomBlockIndex()
     {
         return Random.Range(0, blockObjects.Length);
@@ -63,23 +64,41 @@ public class BlockManager : MonoBehaviour
                 Debug.Log("Y: " + blok[i].transform.position.y);
                 Destroy(blok[i]);
             }
-
-            Debug.Log("Pos y: " + blok[0].transform.position.y);
-            FallRemovedLineUpperBlocks(blok[0].transform.position.y);
+            
+            var uniqY = blok.GroupBy(x => x.transform.position.y).Select(x => x.First()).ToList();
+            FallRemovedLineUpperBlocks(uniqY);
         }
     }
 
-    private void FallRemovedLineUpperBlocks(float fallStartPosY)
+    private void FallRemovedLineUpperBlocks(List<GameObject> fallStartPosY)
     {
         for (int i = 0; i < transform.childCount; i++)
         {
             for (int j = 0; j < transform.GetChild(i).childCount; j++)
             {
-                if (transform.GetChild(i).GetChild(j).position.y > fallStartPosY)
+
+                for (int k = 0; k < fallStartPosY.Count; k++)
                 {
-                    transform.GetChild(i).position += Vector3.down;
-                    break;
+                    if (transform.GetChild(i).GetChild(j).position.y > fallStartPosY[k].transform.position.y)
+                    {
+                        transform.GetChild(i).GetChild(j)
+                            .DOMoveY(transform.GetChild(i).GetChild(j).position.y - fallStartPosY.Count, 1f)
+                            .SetEase(Ease.InOutElastic)
+                            .OnComplete(() =>
+                            {
+                                // for (int k = 0; k < transform.GetChild(i).childCount; k++)
+                                // {
+                                //     if (transform.GetChild(i).GetChild(k).position.y <= bottomGameBorder.position.y)
+                                //     {
+                                //         Destroy(transform.GetChild(i).GetChild(k).gameObject);
+                                //     }
+                                // }
+                            });
+                        //break;
+                    }
+                    
                 }
+                
             }
         }
     }

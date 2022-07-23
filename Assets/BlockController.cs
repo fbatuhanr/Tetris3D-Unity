@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Reflection;
+using DG.Tweening;
 using UnityEngine;
 
 public class BlockController : MonoBehaviour
@@ -67,7 +68,7 @@ public class BlockController : MonoBehaviour
             Destroy(ghostRotateBlock, 3f);
         }
         
-        if (Input.GetKey(KeyCode.S) || Input.GetKey(KeyCode.LeftArrow))
+        if (Input.GetKey(KeyCode.S) || Input.GetKey(KeyCode.DownArrow))
         {
             _blockManager.blockSpeed = blockInitSpeed * 3f;
         }
@@ -190,8 +191,22 @@ public class BlockController : MonoBehaviour
     private void BlockFallCompleted()
     {
         _blockManager.blockSpeed = blockInitSpeed;
+
+        transform.DOShakeScale(0.5f).SetEase(Ease.InOutElastic);
+        
+        SetMaterial(originalMaterial);
+
         _blockManager.CheckBlockLine();
-        _blockManager.SpawnBlock();   
+        
+        if (transform.position.y >= _blockManager.topGameBorder.position.y)
+        {
+            Debug.Log("Game Over!");
+            Time.timeScale = 0;
+            return;
+        }
+        
+        
+        _blockManager.SpawnBlock();
     }
 
 
@@ -212,16 +227,20 @@ public class BlockController : MonoBehaviour
                 //Debug.Log("false: rotate border diff <= 0");
                 return false;
             }
-            
-            
+
+            Debug.Log("Active Obj: " + ghostObject.GetChild(i).name);
             for (int j = 0; j < transform.parent.childCount-1; j++)
             {
                 for (int k = 0; k < transform.parent.GetChild(j).childCount; k++)
                 {
                     var blockDifferenceX = Math.Abs(ghostObject.GetChild(i).position.x - transform.parent.GetChild(j).GetChild(k).position.x);
+                    //blockDifferenceX = Mathf.Round(blockDifferenceX * 10) / 10;
                     var blockDifferenceY = Math.Abs(ghostObject.GetChild(i).position.y - transform.parent.GetChild(j).GetChild(k).position.y);
+                    //blockDifferenceY = Mathf.Round(blockDifferenceY * 10) / 10;
+                    
+                    Debug.Log("Selected Obj: " + transform.parent.GetChild(j).GetChild(k).name);
+                    Debug.Log("Block Diff X: "+blockDifferenceX + " ve Block Diff Y: " +blockDifferenceY);
 
-                    //Debug.Log("Block Diff X: "+blockDifferenceX + " ve Block Diff Y: " +blockDifferenceY);
                     if (blockDifferenceX < 0 || blockDifferenceY < 0)
                     {
                         //Debug.Log("false: block diff <= 0");
