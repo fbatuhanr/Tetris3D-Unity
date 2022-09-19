@@ -1,4 +1,6 @@
-# Tetris3D-Unity
+# Tetris 3D
+
+#### Classic tetris game cloning with Unity
  
 ## PLAY ON ITCH.IO: https://fbatuhanr.itch.io/tetris-3d
 
